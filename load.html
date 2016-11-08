@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0, minimum-scale=1.0, maximum-scale=1.0">
+<title>模拟滚动(条) 到底部自动加载更多数据</title>
+
+<style type="text/css">
+
+*{margin: 0; padding: 0;}
+ul, li{list-style: none;}
+body{font-size: 14px; color: #333; }
+#wrapper{position: absolute; left: 0; right: 0; top: 0; bottom: 0;}
+
+#wrapper1{position: absolute; top: 0;bottom: 0;left:0; width: 90px; background: #F2F7FF; overflow: hidden;-webkit-tap-highlight-color: rgba(0,0,0,0);}
+#scroller1{position: absolute;z-index: 1; width: 100%; -webkit-tap-highlight-color: rgba(0,0,0,0);}
+#scroller1 li{padding:15px 10px;user-select：none;}
+
+#wrapper2{position: absolute;top:0;right:0;bottom:0;left:90px;background: #fff; overflow: hidden;-webkit-tap-highlight-color: rgba(0,0,0,0);}
+#scroller2{position: absolute;z-index: 1; width: 100%; -webkit-tap-highlight-color: rgba(0,0,0,0); -webkit-transform:translate3d(0,0,0); }
+#scroller2 li{padding:10px; border-bottom: 1px solid #F0F1F2; overflow: hidden; }
+#scroller2 li img{float: left; width: 60px; height: 60px; margin-right: 10px; vertical-align: top;}
+#scroller2 li h4{margin-bottom: 6px;}
+#scroller2 li h4 a{font-size: 14px; color: #333; text-decoration: none; -webkit-tap-highlight-color: rgba(0,0,0,.3);}
+#scroller2 li p{ color: #868686;}
+
+#tips{text-align: center; color: #c4c4c4; font-size: 12px;}
+
+.inputs input{ border: 1px solid #c4c4c4; border-radius: 5px; height: 50px; padding: 0 5px; width: 96%; font-size: 16px;}
+
+</style>
+
+</head>
+<body>
+
+<div id="wrapper">
+	<div id="wrapper1">
+		<div id="scroller1">
+			<ul>
+				<li id="a1">点我点我</li>
+				<li>item 2</li>
+				<li>item 3</li>
+				<li>item 4</li>
+				<li>item 5</li>
+				<li>item 6</li>
+				<li>item 7</li>
+				<li id="a2">做个朋友</li>
+				<li>item 9</li>
+				<li>item 10</li>
+				<li>item 11</li>
+				<li>item 12</li>
+				<li>item 13</li>
+				<li>item 14</li>
+				<li>item 15</li>
+				<li>item 16</li>
+				<li>item 17</li>
+				<li>item 18</li>
+				<li>item 19</li>
+				<li>item 20</li>
+			</ul>
+		</div>
+	</div>
+	<div id="wrapper2">
+		<div id="scroller2">
+			<ul id="list">
+				<li><img src="images/01.jpg" /><h4><a href="http://xw.qq.com/">新闻的标题</a></h4><p>这是一张有故事的图片1</p></li>
+				<li><img src="images/02.jpg" /><h4><a href="http://xw.qq.com/">新闻的标题</a></h4><p>这是一张有故事的图片2</p></li>
+				<li><img src="images/03.jpg" /><h4><a href="http://xw.qq.com/">新闻的标题</a></h4><p>这是一张有故事的图片3</p></li>
+				<li><img src="images/04.jpg" /><h4><a href="http://xw.qq.com/">新闻的标题</a></h4><p>这是一张有故事的图片4</p></li>
+				<li><img src="images/05.jpg" /><h4><a href="http://xw.qq.com/">新闻的标题</a></h4><p>这是一张有故事的图片5</p></li>
+				<li><img src="images/06.jpg" /><h4><a href="http://xw.qq.com/">新闻的标题</a></h4><p>这是一张有故事的图片6</p></li>
+				<li><img src="images/07.jpg" /><h4><a href="http://xw.qq.com/">新闻的标题</a></h4><p>这是一张有故事的图片7</p></li>
+				<li><img src="images/08.jpg" /><h4><a href="http://xw.qq.com/">新闻的标题</a></h4><p>这是一张有故事的图片8</p></li>
+				<li><img src="images/09.jpg" /><h4><a href="http://xw.qq.com/">新闻的标题</a></h4><p>这是一张有故事的图片9</p></li>
+				<li><img src="images/10.jpg" /><h4><a href="http://xw.qq.com/">新闻的标题</a></h4><p>这是一张有故事的图片10</p></li>
+			</ul>
+			<p id="tips">正在加载</p>
+		</div>
+	</div>
+</div>
+<script type="text/javascript" src="mScroll.min.js"></script>
+<script type="text/javascript">
+	
+	//左边菜单滚动
+    var leftScroll = new mScroll('#wrapper1', {
+        display: true
+    });
+
+    var list = document.querySelector('#list'),
+        tips = document.querySelector('#tips'),
+        wrapper2 = document.getElementById('wrapper2');
+    var toDouble = function(n) {
+    	return n < 10 ? '0' + n : n;
+    };    
+    //右边内容滚动
+    var rightScroll = new mScroll(wrapper2, {
+    	display: true
+    });
+    rightScroll.$on('scrollEnd', function(){
+    	if (rightScroll.y === rightScroll.maxScrollY) {
+    		var len = list.children.length;
+            if (len >= 80) return tips.innerHTML = '已经加载完了'; //数据已经加载完
+            //模拟加载数据(ajax)
+            for (var i = 1, html = ''; i <= 10; i++) {
+                html += '<li><img src="images/' + toDouble(len + i) + '.jpg" width="60" /><h4><a href="http://xw.qq.com/">新闻的标题</a></h4><p>这是一张有故事的图片' + (len + i) + '</p></li>';
+            }
+            list.innerHTML += html;
+            rightScroll.$refresh();
+    	}
+    });
+   
+</script>
+
+</body>
+</html>

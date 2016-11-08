@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0, minimum-scale=1.0, maximum-scale=1.0">
+	<title>模拟滚动(条) 下拉刷新 上拉加载 横向滚动 点击居中</title>
+	<style>
+		*{margin: 0; padding: 0;}
+		ul, li{list-style: none;}
+		body{background: #f5f5f5;}
+		
+		.wrapper{position: absolute; left: 0; top: 40px; bottom: 0; width: 100%; overflow: hidden;}
+		.scroller{position: absolute; left: 0; top: 0; width: 100%;}
+		.list li{height: 50px; line-height: 50px; padding: 0 10px; background: #fff; border-top: 1px solid #f30; font-size: 18px; font-weight: bold; }
+		.list li:last-child{border-bottom: 1px solid #f30;}
+		.list li a{display: block; width: 100%; height: 100%;}
+		
+		.scroller-top, .scroller-bottom{position: absolute; left: 0; width: 100%; height: 35px; line-height: 35px; text-align: center; font-size: 12px; color: #999;}
+		.scroller-top{top:-35px;}
+		.scroller-bottom{bottom:-35px;}
+		
+		.nav-wrapper{position: absolute; left: 0; top: 0; width: 100%; height: 40px; overflow: hidden; background: #f30; color: #fff;}
+		.nav-scroller{position: absolute; left: 0; top: 0; width: 100%; height: 40px;}
+		.nav-scroller li{float: left; width: 70px; height: 40px; line-height: 40px; font-size: 16px; text-align: center;}
+	</style>
+</head>
+<body>
+	<div class="nav-wrapper">
+		<ul class="nav-scroller">
+			<li>标签1</li>
+			<li>标签2</li>
+			<li>标签3</li>
+			<li>标签4</li>
+			<li>标签5</li>
+			<li>标签6</li>
+			<li>标签7</li>
+			<li>标签8</li>
+			<li>标签9</li>
+			<li>标签10</li>
+			<li>标签11</li>
+			<li>标签12</li>
+		</ul>
+	</div>
+	<div class="wrapper">
+		<div class="scroller">
+			<div class="scroller-top">下拉刷新</div>
+			<ul class="list">
+				<li>1</li>
+				<li>2</li>
+				<li>3</li>
+				<li><a href="http://m.jd.com/">4</a></li>
+				<li>5</li>
+				<li>6</li>
+				<li>7</li>
+				<li>8</li>
+				<li>9</li>
+				<li>10</li>
+				<li>11</li>
+				<li>12</li>
+				<li>13</li>
+				<li>14</li>
+				<li>15</li>
+				<li>16</li>
+				<li>17</li>
+				<li>18</li>
+				<li>19</li>
+				<li>20</li>
+				<li>21</li>
+				<li>22</li>
+				<li>23</li>
+				<li>24</li>
+			</ul>
+			<div class="scroller-bottom">加载更多</div>		
+		</div>
+	</div>
+	<script src="mScroll.min.js"></script>
+	<script>
+	var navScroll = new mScroll('.nav-wrapper', {
+		direction: 'left'
+	});
+	
+	var topScroller = document.querySelector('.scroller-top'); //刷新指示区域
+	var bottomScroller = document.querySelector('.scroller-bottom'); //加载指示区域
+	var scrollerBox = document.querySelector('.list');
+	var scroll = new mScroll('.wrapper', {
+		display: true,
+		usePullDown: true,
+		usePullUp: true,
+		pullDownOffset: 35,
+		pullUpOffset: 35,
+		pullDownStart: function() {
+			topScroller.innerHTML = '松开刷新';
+		},
+		pullDownCancel: function() {
+			topScroller.innerHTML = '下拉刷新';
+		},
+		pullDownEnd: function(tx, ty) {
+			scroll.$scrollTo(0, ty, 500);
+			topScroller.innerHTML = '刷新中';
+			scroll.$locked = true; //刷新时锁定滑动 防止重复刷新
+			// ajax...
+			setTimeout(function() {
+				//模拟刷新
+				for (var i = 1, html = ''; i <= 20; i++) {
+					html += '<li>内容 - ' + i + '</li>';
+				}
+				scrollerBox.innerHTML = html;
+				//刷新完成后
+				console.log('刷新完成')
+				scroll.$locked = false; //刷新完成解除锁定
+				scroll.$scrollTo(0, 0, 300);
+				scroll.$refresh(); // 由于内容改变 刷新内部宽高设置
+				setTimeout(function() {
+					topScroller.innerHTML = '下拉刷新';
+				}, 300);
+			}, 1000);
+		},
+		pullUpStart: function() {
+			bottomScroller.innerHTML = '松开加载';
+		},
+		pullUpCancel: function() {
+			bottomScroller.innerHTML = '加载更多';
+		},
+		pullUpEnd: function(tx, ty) {
+			scroll.$scrollTo(0, ty, 500);
+			bottomScroller.innerHTML = '加载中';
+			scroll.$locked = true; //加载时锁定滑动
+			// ajax...
+			setTimeout(function() {
+				//模拟加载数据
+				var len = scrollerBox.children.length;
+				for (var i = 1, html = ''; i <= 20; i++) {
+					html += '<li>内容 - ' + (len + i) + '</li>';
+				}
+				scrollerBox.innerHTML += html;
+
+				//加载完成后
+				console.log('加载完成')
+				scroll.$locked = false; //接触锁定
+				scroll.$refresh(); // 由于内容改变 刷新内部宽高设置
+				bottomScroller.innerHTML = '加载更多';
+			}, 1000);
+		}
+	});
+
+	// 自动加载
+	// scroll.$on('scrollEnd', function() {
+	// 	if (scroll.y === scroll.maxScrollY) {
+	// 		bottomScroller.innerHTML = '加载中';
+	// 		// ajax...
+	// 		setTimeout(function() {
+	// 			//模拟加载数据
+	// 			var len = scrollerBox.children.length;
+	// 			for (var i = 1, html = ''; i <= 20; i++) {
+	// 				html += '<li>内容 - ' + (len + i) + '</li>';
+	// 			}
+	// 			scrollerBox.innerHTML += html;
+
+	// 			//加载完成后
+	// 			console.log('加载完成')
+	// 			scroll.$refresh(); // 由于内容改变 刷新内部宽高设置
+	// 			bottomScroller.innerHTML = '加载更多';
+	// 		}, 1000);
+	// 	}
+	// });
+	
+	// 点击居中
+	navScroll.wrapper.addEventListener('click', function(e) {
+		var target = e.target;
+		if (target.tagName.toLowerCase() === 'li'){
+			navScroll.$moveTo(target, 400, true);
+		}
+	});
+
+	</script>
+</body>
+</html>
